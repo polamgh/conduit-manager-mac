@@ -5,7 +5,8 @@
 
 # --- CONFIGURATION ---
 CONTAINER_NAME="conduit-mac"
-IMAGE="ghcr.io/ssmirr/conduit/conduit:87cc1a3"
+# Updated to release d8522a8 (Critical Update)
+IMAGE="ghcr.io/ssmirr/conduit/conduit:d8522a8"
 VOLUME_NAME="conduit-data"
 
 # --- COLORS ---
@@ -72,17 +73,23 @@ smart_start() {
 # --- INSTALLATION (First Time or Reconfigure) ---
 install_new() {
     echo ""
+    # Default set to 200 as recommended by developer (Psiphon default is 50 which is too low)
     read -p "Maximum Clients [Default: 200]: " MAX_CLIENTS
     MAX_CLIENTS=${MAX_CLIENTS:-200}
     
-    read -p "Bandwidth Limit (Mbps) [Default: 5]: " BANDWIDTH
+    # Updated text to mention -1 for unlimited
+    read -p "Bandwidth Limit (Mbps) [Default: 5, Enter -1 for Unlimited]: " BANDWIDTH
     BANDWIDTH=${BANDWIDTH:-5}
 
     echo ""
-    echo -e "${YELLOW}Deploying container...${NC}"
+    echo -e "${YELLOW}Deploying container (ver: d8522a8)...${NC}"
     
     docker rm -f $CONTAINER_NAME 2>/dev/null || true
     
+    # Pull the new image first to ensure we have the update
+    docker pull $IMAGE > /dev/null
+    
+    # Passed flags explicitly as required by the new update
     docker run -d \
         --name $CONTAINER_NAME \
         --restart unless-stopped \
