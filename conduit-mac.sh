@@ -550,28 +550,57 @@ stop_service() {
 
 # view_dashboard: Display real-time container statistics
 # Shows CPU, RAM, connected users, and traffic in a live-updating display.
+# Uses flag-based loop control (like Linux version) for reliable Ctrl+C handling.
 view_dashboard() {
     log_info "Dashboard view started"
 
-    # Set up signal handler for clean exit on Ctrl+C
-    trap 'log_info "Dashboard view ended"; return 0' SIGINT
+    # Flag to control the loop - set by signal handler
+    local stop_dashboard=0
 
-    while true; do
-        print_header
-        echo -e "${BOLD}LIVE DASHBOARD${NC} (Press ${YELLOW}Ctrl+C${NC} to Exit)"
-        echo "══════════════════════════════════════════════════════"
+    # Setup trap to catch Ctrl+C gracefully by setting flag
+    trap 'stop_dashboard=1' SIGINT SIGTERM
 
-        # Check if container is running (use || true to prevent exit on non-zero)
-        if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    # Use alternate screen buffer for smoother experience (like Linux version)
+    tput smcup 2>/dev/null || true
+    echo -ne "\033[?25l"  # Hide cursor
+    clear
+
+    while [ "$stop_dashboard" -eq 0 ]; do
+        # Move cursor to top-left instead of clearing (prevents flicker)
+        tput cup 0 0 2>/dev/null || printf "\033[H"
+
+        # Print header inline (without clear)
+        echo -e "${CYAN}"
+        echo "  ██████╗ ██████╗ ███╗   ██╗██████╗ ██╗   ██╗██╗████████╗"
+        echo " ██╔════╝██╔═══██╗████╗  ██║██╔══██╗██║   ██║██║╚══██╔══╝"
+        echo " ██║     ██║   ██║██╔██╗ ██║██║  ██║██║   ██║██║   ██║   "
+        echo " ██║     ██║   ██║██║╚██╗██║██║  ██║██║   ██║██║   ██║   "
+        echo " ╚██████╗╚██████╔╝██║ ╚████║██████╔╝╚██████╔╝██║   ██║   "
+        echo "  ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝  ╚═════╝ ╚═╝   ╚═╝   "
+        echo -e "         ${YELLOW}macOS Security-Hardened Edition${CYAN}              "
+        echo -e "${NC}"
+        echo -e "${GREEN}[SECURE]${NC} Container isolation: ENABLED"
+        echo ""
+
+        echo -e "${BOLD}LIVE DASHBOARD${NC} (Press ${YELLOW}any key${NC} to Exit)\033[K"
+        echo "══════════════════════════════════════════════════════\033[K"
+
+        # Check if container is running
+        local is_running=0
+        if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^${CONTAINER_NAME}$"; then
+            is_running=1
+        fi
+
+        if [ "$is_running" -eq 1 ]; then
             # ------------------------------------------------------------------
             # Fetch container resource statistics from Docker
             # ------------------------------------------------------------------
             local docker_stats=""
-            docker_stats=$(docker stats --no-stream --format "{{.CPUPerc}}|{{.MemUsage}}" "$CONTAINER_NAME" 2>/dev/null || true)
+            docker_stats=$(docker stats --no-stream --format "{{.CPUPerc}}|{{.MemUsage}}" "$CONTAINER_NAME" 2>/dev/null) || docker_stats=""
 
             local cpu="N/A"
             local ram="N/A"
-            if [[ -n "$docker_stats" ]]; then
+            if [ -n "$docker_stats" ]; then
                 cpu=$(echo "$docker_stats" | cut -d'|' -f1)
                 ram=$(echo "$docker_stats" | cut -d'|' -f2)
             fi
@@ -579,61 +608,73 @@ view_dashboard() {
             # ------------------------------------------------------------------
             # Parse connection and traffic statistics from container logs
             # Look for [STATS] lines which contain connection information
-            # Note: grep returns 1 if no match, so we use || true to prevent exit
             # ------------------------------------------------------------------
+            local log_output=""
+            log_output=$(docker logs --tail 50 "$CONTAINER_NAME" 2>&1) || log_output=""
+
             local log_line=""
-            log_line=$(docker logs --tail 50 "$CONTAINER_NAME" 2>&1 | grep "\[STATS\]" | tail -n 1 || true)
+            log_line=$(echo "$log_output" | grep "\[STATS\]" | tail -n 1) || log_line=""
 
             local conn="0"
             local up="0B"
             local down="0B"
 
-            if [[ -n "$log_line" ]]; then
+            if [ -n "$log_line" ]; then
                 # Extract connected users count using sed pattern matching
-                conn=$(echo "$log_line" | sed -n 's/.*Connected:[[:space:]]*\([0-9]*\).*/\1/p' || true)
+                conn=$(echo "$log_line" | sed -n 's/.*Connected:[[:space:]]*\([0-9]*\).*/\1/p') || conn=""
                 conn="${conn:-0}"
 
                 # Extract upload traffic
-                up=$(echo "$log_line" | sed -n 's/.*Up:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ' || true)
+                up=$(echo "$log_line" | sed -n 's/.*Up:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ') || up=""
                 up="${up:-0B}"
 
                 # Extract download traffic
-                down=$(echo "$log_line" | sed -n 's/.*Down:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ' || true)
+                down=$(echo "$log_line" | sed -n 's/.*Down:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ') || down=""
                 down="${down:-0B}"
             fi
 
             # Fetch container uptime
             local uptime=""
-            uptime=$(docker ps -f "name=$CONTAINER_NAME" --format '{{.Status}}' || true)
+            uptime=$(docker ps -f "name=$CONTAINER_NAME" --format '{{.Status}}' 2>/dev/null) || uptime="Unknown"
 
             # ------------------------------------------------------------------
-            # Display formatted dashboard
+            # Display formatted dashboard (with \033[K to clear line remnants)
             # ------------------------------------------------------------------
-            echo -e " STATUS:      ${GREEN}● ONLINE${NC}"
-            echo -e " UPTIME:      $uptime"
-            echo "──────────────────────────────────────────────────────"
-            printf " %-15s | %-15s \n" "RESOURCES" "TRAFFIC"
-            echo "──────────────────────────────────────────────────────"
-            printf " CPU: ${YELLOW}%-9s${NC} | Users: ${GREEN}%-9s${NC} \n" "$cpu" "$conn"
-            printf " RAM: ${YELLOW}%-9s${NC} | Up:    ${CYAN}%-9s${NC} \n" "$ram" "$up"
-            printf "              | Down:  ${CYAN}%-9s${NC} \n" "$down"
-            echo "══════════════════════════════════════════════════════"
-            echo -e "${GREEN}[SECURE]${NC} Network isolated | Privileges dropped"
-            echo -e "${YELLOW}Refreshing every 10 seconds...${NC}"
+            echo -e " STATUS:      ${GREEN}● ONLINE${NC}\033[K"
+            echo -e " UPTIME:      $uptime\033[K"
+            echo "──────────────────────────────────────────────────────\033[K"
+            printf " %-15s | %-15s \033[K\n" "RESOURCES" "TRAFFIC"
+            echo "──────────────────────────────────────────────────────\033[K"
+            printf " CPU: ${YELLOW}%-9s${NC} | Users: ${GREEN}%-9s${NC} \033[K\n" "$cpu" "$conn"
+            printf " RAM: ${YELLOW}%-9s${NC} | Up:    ${CYAN}%-9s${NC} \033[K\n" "$ram" "$up"
+            printf "              | Down:  ${CYAN}%-9s${NC} \033[K\n" "$down"
+            echo "══════════════════════════════════════════════════════\033[K"
+            echo -e "${GREEN}[SECURE]${NC} Network isolated | Privileges dropped\033[K"
+            echo -e "${YELLOW}Refreshing every 5 seconds...\033[K${NC}"
         else
             # Container not running - show offline status
-            echo -e " STATUS:      ${RED}● OFFLINE${NC}"
-            echo "──────────────────────────────────────────────────────"
-            echo -e " Service is not running."
-            echo " Press 1 from main menu to Start."
-            echo "══════════════════════════════════════════════════════"
+            echo -e " STATUS:      ${RED}● OFFLINE${NC}\033[K"
+            echo "──────────────────────────────────────────────────────\033[K"
+            echo -e " Service is not running.\033[K"
+            echo -e " Press 1 from main menu to Start.\033[K"
+            echo "══════════════════════════════════════════════════════\033[K"
         fi
 
-        sleep 10
+        # Clear any leftover lines below (erase to end of display)
+        tput ed 2>/dev/null || printf "\033[J"
+
+        # Wait for keypress with timeout (like Linux version)
+        # This allows "press any key to exit" instead of just Ctrl+C
+        if read -t 5 -n 1 -s 2>/dev/null; then
+            stop_dashboard=1
+        fi
     done
 
-    # Reset signal handler
-    trap - SIGINT
+    # Cleanup: show cursor and restore screen
+    echo -ne "\033[?25h"  # Show cursor
+    tput rmcup 2>/dev/null || true
+    trap - SIGINT SIGTERM
+    log_info "Dashboard view ended"
 }
 
 # view_logs: Stream container logs in real-time
