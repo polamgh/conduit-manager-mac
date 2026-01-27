@@ -2041,6 +2041,21 @@ open_menubar_app() {
 # MAIN MENU LOOP
 # ==============================================================================
 
+# Check if stdin is a terminal (not piped)
+# When run via "curl | bash", stdin is not a TTY and interactive menus won't work
+if [ ! -t 0 ]; then
+    echo ""
+    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
+    echo -e "${GREEN}  Conduit Manager installed successfully!${NC}"
+    echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "To start the interactive menu, run:"
+    echo ""
+    echo -e "  ${CYAN}~/conduit-manager/conduit-mac.sh${NC}"
+    echo ""
+    exit 0
+fi
+
 check_docker
 log_info "=== Conduit Manager v${VERSION} session started ==="
 
