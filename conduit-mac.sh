@@ -869,8 +869,11 @@ view_dashboard() {
         echo -e "${GREEN}[SECURE]${NC} Container isolation: ENABLED"
         echo ""
 
-        echo -e "${BOLD}LIVE DASHBOARD${NC} (Press ${YELLOW}any key${NC} to Exit)\033[K"
-        echo "══════════════════════════════════════════════════════\033[K"
+        # Define clear-to-end-of-line escape sequence
+        local CL=$'\033[K'
+
+        echo -e "${BOLD}LIVE DASHBOARD${NC} (Press ${YELLOW}any key${NC} to Exit)${CL}"
+        echo "══════════════════════════════════════════════════════${CL}"
 
         local is_running=0
         if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^${CONTAINER_NAME}$"; then
@@ -929,30 +932,30 @@ view_dashboard() {
             node_id=$(get_node_id) || node_id=""
 
             # Display dashboard
-            echo -e " STATUS:      ${GREEN}● ONLINE${NC}\033[K"
-            echo -e " UPTIME:      $uptime\033[K"
+            echo -e " STATUS:      ${GREEN}● ONLINE${NC}${CL}"
+            echo -e " UPTIME:      ${uptime}${CL}"
             if [ -n "$node_id" ]; then
-                echo -e " NODE ID:     ${CYAN}${node_id}${NC}\033[K"
+                echo -e " NODE ID:     ${CYAN}${node_id}${NC}${CL}"
             fi
-            echo "──────────────────────────────────────────────────────\033[K"
-            echo -e " ${BOLD}CLIENTS${NC}\033[K"
-            printf "   Connected:  ${GREEN}%-6s${NC} | Connecting: ${YELLOW}%-6s${NC}\033[K\n" "$conn" "$connecting"
-            echo "──────────────────────────────────────────────────────\033[K"
-            echo -e " ${BOLD}TRAFFIC${NC}\033[K"
-            printf "   Upload:     ${CYAN}%-12s${NC} | Download: ${CYAN}%-12s${NC}\033[K\n" "$up" "$down"
-            echo "──────────────────────────────────────────────────────\033[K"
-            echo -e " ${BOLD}RESOURCES${NC}           Container         System\033[K"
-            printf "   CPU:        ${YELLOW}%-12s${NC}    ${YELLOW}%-12s${NC}\033[K\n" "$cpu" "$sys_cpu"
-            printf "   RAM:        ${YELLOW}%-12s${NC}    ${YELLOW}%-12s${NC}\033[K\n" "$ram" "$sys_ram_used"
-            echo "══════════════════════════════════════════════════════\033[K"
-            echo -e "${GREEN}[SECURE]${NC} Network isolated | Privileges dropped\033[K"
-            echo -e "${YELLOW}Refreshing every 5 seconds...\033[K${NC}"
+            echo "──────────────────────────────────────────────────────${CL}"
+            echo -e " ${BOLD}CLIENTS${NC}${CL}"
+            echo -e "   Connected:  ${GREEN}${conn}${NC}      | Connecting: ${YELLOW}${connecting}${NC}${CL}"
+            echo "──────────────────────────────────────────────────────${CL}"
+            echo -e " ${BOLD}TRAFFIC${NC}${CL}"
+            echo -e "   Upload:     ${CYAN}${up}${NC}    | Download: ${CYAN}${down}${NC}${CL}"
+            echo "──────────────────────────────────────────────────────${CL}"
+            echo -e " ${BOLD}RESOURCES${NC}           Container         System${CL}"
+            echo -e "   CPU:        ${YELLOW}${cpu}${NC}         ${YELLOW}${sys_cpu}${NC}${CL}"
+            echo -e "   RAM:        ${YELLOW}${ram}${NC}    ${YELLOW}${sys_ram_used}${NC}${CL}"
+            echo "══════════════════════════════════════════════════════${CL}"
+            echo -e "${GREEN}[SECURE]${NC} Network isolated | Privileges dropped${CL}"
+            echo -e "${YELLOW}Refreshing every 5 seconds...${NC}${CL}"
         else
-            echo -e " STATUS:      ${RED}● OFFLINE${NC}\033[K"
-            echo "──────────────────────────────────────────────────────\033[K"
-            echo -e " Service is not running.\033[K"
-            echo -e " Press 1 from main menu to Start.\033[K"
-            echo "══════════════════════════════════════════════════════\033[K"
+            echo -e " STATUS:      ${RED}● OFFLINE${NC}${CL}"
+            echo "──────────────────────────────────────────────────────${CL}"
+            echo -e " Service is not running.${CL}"
+            echo -e " Press 1 from main menu to Start.${CL}"
+            echo "══════════════════════════════════════════════════════${CL}"
         fi
 
         tput ed 2>/dev/null || printf "\033[J"
