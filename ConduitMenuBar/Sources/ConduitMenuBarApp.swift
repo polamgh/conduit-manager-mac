@@ -50,11 +50,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.tag = 100  // Tag for updating
         menu.addItem(statusItem)
 
-        // Node ID (clickable to copy)
-        let nodeIdItem = NSMenuItem(title: "Node: Loading...", action: #selector(copyNodeId), keyEquivalent: "")
-        nodeIdItem.tag = 101
-        menu.addItem(nodeIdItem)
-
         // Client stats
         let statsItem = NSMenuItem(title: "Clients: -", action: nil, keyEquivalent: "")
         statsItem.tag = 102
@@ -75,6 +70,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Terminal manager
         menu.addItem(NSMenuItem(title: "Open Terminal Manager...", action: #selector(openTerminal), keyEquivalent: "t"))
+        menu.addItem(NSMenuItem(title: "Copy Node ID", action: #selector(copyNodeId), keyEquivalent: "c"))
 
         menu.addItem(NSMenuItem.separator())
 
@@ -88,12 +84,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let isRunning = manager.isContainerRunning()
 
-        // Update icon - globe with color indicating status
+        // Update icon based on status
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "globe", accessibilityDescription: "Conduit")
-            button.image?.isTemplate = false
-            // Green when running, gray when stopped
-            button.contentTintColor = isRunning ? NSColor.systemGreen : NSColor.systemGray
+            // Use different SF Symbols for running vs stopped
+            let symbolName = isRunning ? "globe.americas.fill" : "globe"
+
+            if let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Conduit") {
+                // Configure size for menu bar
+                let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
+                if let configuredImage = image.withSymbolConfiguration(config) {
+                    // Always use template mode for proper dark mode support
+                    configuredImage.isTemplate = true
+                    button.image = configuredImage
+                }
+                // Clear any tint - let the system handle light/dark mode
+                button.contentTintColor = nil
+            }
         }
 
         // Update menu items
@@ -101,19 +107,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Status text
             if let statusMenuItem = menu.item(withTag: 100) {
                 statusMenuItem.title = isRunning ? "● Conduit: Running" : "○ Conduit: Stopped"
-            }
-
-            // Node ID
-            if let nodeIdItem = menu.item(withTag: 101) {
-                if let nodeId = manager.getNodeId() {
-                    let shortId = String(nodeId.prefix(20)) + "..."
-                    nodeIdItem.title = "Node: \(shortId)"
-                    nodeIdItem.toolTip = "Click to copy full Node ID: \(nodeId)"
-                    nodeIdItem.isEnabled = true
-                } else {
-                    nodeIdItem.title = "Node: Not available"
-                    nodeIdItem.isEnabled = false
-                }
             }
 
             // Client stats

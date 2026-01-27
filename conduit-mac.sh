@@ -1643,12 +1643,12 @@ health_check() {
     echo -n "  Psiphon connection:   "
     if container_running; then
         local connected=""
-        connected=$(docker logs --tail 100 "$CONTAINER_NAME" 2>&1 | grep -c "Connected to Psiphon" || echo "0")
+        connected=$(docker logs --tail 100 "$CONTAINER_NAME" 2>/dev/null | grep -c "Connected to Psiphon" 2>/dev/null || echo "0")
         if [ "$connected" -gt 0 ]; then
             echo -e "${GREEN}OK${NC} (Connected to Psiphon network)"
         else
             local info_lines=""
-            info_lines=$(docker logs --tail 100 "$CONTAINER_NAME" 2>&1 | grep -c "\[INFO\]" || echo "0")
+            info_lines=$(docker logs --tail 100 "$CONTAINER_NAME" 2>/dev/null | grep -c "\[INFO\]" 2>/dev/null || echo "0")
             if [ "$info_lines" -gt 0 ]; then
                 echo -e "${YELLOW}CONNECTING${NC} - Establishing connection..."
                 warnings=$((warnings + 1))
@@ -1665,7 +1665,7 @@ health_check() {
     echo -n "  Stats output:         "
     if container_running; then
         local stats_count=""
-        stats_count=$(docker logs --tail 100 "$CONTAINER_NAME" 2>&1 | grep -c "\[STATS\]" || echo "0")
+        stats_count=$(docker logs --tail 100 "$CONTAINER_NAME" 2>/dev/null | grep -c "\[STATS\]" 2>/dev/null || echo "0")
         if [ "$stats_count" -gt 0 ]; then
             echo -e "${GREEN}OK${NC} (${stats_count} entries)"
         else
