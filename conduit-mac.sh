@@ -35,7 +35,7 @@ set -euo pipefail
 # VERSION AND CONFIGURATION
 # ==============================================================================
 
-readonly VERSION="1.2.0"                                          # Script version
+readonly VERSION="1.3.0"                                          # Script version
 
 # Container and image settings
 readonly CONTAINER_NAME="conduit-mac"                             # Docker container name
@@ -45,13 +45,16 @@ readonly VOLUME_NAME="conduit-data"                               # Persistent d
 readonly NETWORK_NAME="conduit-network"                           # Isolated bridge network
 readonly LOG_FILE="${HOME}/.conduit-manager.log"                  # Local log file path
 readonly BACKUP_DIR="${HOME}/.conduit-backups"                    # Backup directory for keys
+readonly CONFIG_FILE="${HOME}/.conduit-config"                    # User configuration file
 
 # ------------------------------------------------------------------------------
-# RESOURCE LIMITS - Prevent container from consuming excessive host resources
+# RESOURCE LIMITS - Default values (can be overridden by user config)
 # ------------------------------------------------------------------------------
-readonly MAX_MEMORY="2g"        # Maximum RAM the container can use (2 gigabytes)
-readonly MAX_CPUS="2"           # Maximum CPU cores the container can use
-readonly MEMORY_SWAP="2g"       # Disable swap to prevent disk thrashing
+DEFAULT_MAX_MEMORY="2g"         # Default RAM limit (2 gigabytes)
+DEFAULT_MAX_CPUS="2"            # Default CPU cores limit
+MAX_MEMORY="$DEFAULT_MAX_MEMORY"
+MAX_CPUS="$DEFAULT_MAX_CPUS"
+MEMORY_SWAP="$DEFAULT_MAX_MEMORY"  # Match swap to memory limit
 
 # ------------------------------------------------------------------------------
 # INPUT VALIDATION CONSTRAINTS
@@ -95,6 +98,44 @@ log_message() {
 log_info() { log_message "INFO" "$1"; }
 log_warn() { log_message "WARN" "$1"; }
 log_error() { log_message "ERROR" "$1"; }
+
+# ==============================================================================
+# CONFIGURATION MANAGEMENT
+# ==============================================================================
+
+# load_config: Load user configuration from file
+load_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        # Source the config file to load variables
+        # shellcheck disable=SC1090
+        source "$CONFIG_FILE" 2>/dev/null || true
+
+        # Validate loaded values
+        if [ -n "$SAVED_MAX_MEMORY" ]; then
+            MAX_MEMORY="$SAVED_MAX_MEMORY"
+            MEMORY_SWAP="$SAVED_MAX_MEMORY"
+        fi
+        if [ -n "$SAVED_MAX_CPUS" ]; then
+            MAX_CPUS="$SAVED_MAX_CPUS"
+        fi
+    fi
+}
+
+# save_config: Save user configuration to file
+save_config() {
+    cat > "$CONFIG_FILE" << EOF
+# Conduit Manager Configuration
+# Generated: $(date)
+
+# Resource Limits
+SAVED_MAX_MEMORY="$MAX_MEMORY"
+SAVED_MAX_CPUS="$MAX_CPUS"
+EOF
+    chmod 600 "$CONFIG_FILE"
+}
+
+# Load configuration at startup
+load_config
 
 # ==============================================================================
 # UTILITY FUNCTIONS
@@ -1004,6 +1045,80 @@ view_logs() {
     log_info "Log view ended"
 }
 
+# configure_resources: Allow user to set CPU and memory limits
+configure_resources() {
+    print_header
+    echo -e "${BOLD}RESOURCE LIMITS${NC}"
+    echo "══════════════════════════════════════════════════════"
+    echo ""
+
+    # Get system info for recommendations
+    local total_cores
+    local total_ram_gb
+    total_cores=$(sysctl -n hw.ncpu 2>/dev/null) || total_cores="?"
+    total_ram_gb=$(( $(sysctl -n hw.memsize 2>/dev/null) / 1073741824 )) || total_ram_gb="?"
+
+    echo -e "${BOLD}System Resources:${NC}"
+    echo "  Total CPU Cores: ${total_cores}"
+    echo "  Total RAM:       ${total_ram_gb} GB"
+    echo ""
+    echo -e "${BOLD}Current Limits:${NC}"
+    echo "  Memory Limit:    ${MAX_MEMORY}"
+    echo "  CPU Limit:       ${MAX_CPUS} cores"
+    echo ""
+    echo "══════════════════════════════════════════════════════"
+    echo ""
+    echo -e "${YELLOW}Note:${NC} Changes require container restart to take effect."
+    echo ""
+
+    # Memory configuration
+    echo -e "${BOLD}Set Memory Limit${NC}"
+    echo "  Examples: 1g, 2g, 4g, 512m"
+    echo "  Current:  ${MAX_MEMORY}"
+    read -p "  New value (or Enter to keep current): " new_memory
+
+    if [ -n "$new_memory" ]; then
+        # Validate format (number followed by g or m)
+        if [[ "$new_memory" =~ ^[0-9]+[gGmM]$ ]]; then
+            MAX_MEMORY="${new_memory,,}"  # Convert to lowercase
+            MEMORY_SWAP="$MAX_MEMORY"
+            echo -e "  ${GREEN}✔ Memory limit set to ${MAX_MEMORY}${NC}"
+        else
+            echo -e "  ${RED}Invalid format. Use format like: 2g or 512m${NC}"
+        fi
+    fi
+    echo ""
+
+    # CPU configuration
+    echo -e "${BOLD}Set CPU Limit${NC}"
+    echo "  Enter number of CPU cores (can be decimal, e.g., 1.5)"
+    echo "  Current:  ${MAX_CPUS}"
+    read -p "  New value (or Enter to keep current): " new_cpus
+
+    if [ -n "$new_cpus" ]; then
+        # Validate format (integer or decimal)
+        if [[ "$new_cpus" =~ ^[0-9]+\.?[0-9]*$ ]]; then
+            MAX_CPUS="$new_cpus"
+            echo -e "  ${GREEN}✔ CPU limit set to ${MAX_CPUS} cores${NC}"
+        else
+            echo -e "  ${RED}Invalid format. Use a number like: 2 or 1.5${NC}"
+        fi
+    fi
+    echo ""
+
+    # Save configuration
+    save_config
+    log_info "Resource limits updated: memory=$MAX_MEMORY, cpus=$MAX_CPUS"
+
+    echo "══════════════════════════════════════════════════════"
+    echo -e "${GREEN}✔ Configuration saved${NC}"
+    echo ""
+    echo "To apply changes, restart the container:"
+    echo "  - Use option 1 (Start/Restart) from the main menu"
+    echo ""
+    read -n 1 -s -r -p "Press any key to return..."
+}
+
 # show_security_info: Display detailed security configuration
 show_security_info() {
     print_header
@@ -1082,6 +1197,7 @@ uninstall_all() {
     echo "  - The conduit-network Docker network"
     echo "  - The Docker image"
     echo "  - The log file (~/.conduit-manager.log)"
+    echo "  - The config file (~/.conduit-config)"
     echo ""
 
     # Check for existing backups
@@ -1146,9 +1262,10 @@ uninstall_all() {
     echo "Removing Docker image..."
     docker rmi "$IMAGE" 2>/dev/null || true
 
-    # Remove log file
-    echo "Removing log file..."
+    # Remove log file and config file
+    echo "Removing log and config files..."
     rm -f "$LOG_FILE" 2>/dev/null || true
+    rm -f "$CONFIG_FILE" 2>/dev/null || true
 
     # Optionally remove backups
     if [ "$delete_backups" = true ] && [ -d "$BACKUP_DIR" ]; then
@@ -1318,12 +1435,13 @@ while true; do
     echo ""
     echo -e " ${BOLD}Configuration${NC}"
     echo "   5. ⚙  Reconfigure (Re-install)"
-    echo "   6. 🔒 Security Settings"
-    echo "   7. 🆔 Node Identity"
+    echo "   6. 📈 Resource Limits (CPU/RAM)"
+    echo "   7. 🔒 Security Settings"
+    echo "   8. 🆔 Node Identity"
     echo ""
     echo -e " ${BOLD}Backup & Maintenance${NC}"
-    echo "   8. 💾 Backup Key"
-    echo "   9. 📥 Restore Key"
+    echo "   b. 💾 Backup Key"
+    echo "   r. 📥 Restore Key"
     echo "   u. 🔄 Check for Updates"
     echo "   x. 🗑  Uninstall"
     echo ""
@@ -1341,10 +1459,11 @@ while true; do
             echo -e "${BLUE}▶ RECONFIGURATION${NC}"
             install_new
             ;;
-        6) show_security_info ;;
-        7) show_node_info ;;
-        8) backup_key ;;
-        9) restore_key ;;
+        6) configure_resources ;;
+        7) show_security_info ;;
+        8) show_node_info ;;
+        [bB]) backup_key ;;
+        [rR]) restore_key ;;
         [uU]) check_for_updates ;;
         [xX]) uninstall_all ;;
         0)
