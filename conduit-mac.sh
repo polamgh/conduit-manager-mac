@@ -460,7 +460,6 @@ install_new() {
     #   --network           : Use isolated bridge network (NOT host network)
     #   --read-only         : Container filesystem is read-only (prevents tampering)
     #   --tmpfs /tmp        : Writable temp directory in memory only
-    #   --tmpfs /home/conduit/data : Writable data directory in memory
     #   --security-opt      : Prevent privilege escalation attacks
     #   --cap-drop ALL      : Remove ALL Linux capabilities
     #   --cap-add NET_BIND_SERVICE : Allow binding to ports (required for proxy)
@@ -480,7 +479,6 @@ install_new() {
         --network "$NETWORK_NAME" \
         --read-only \
         --tmpfs /tmp:rw,noexec,nosuid,size=100m \
-        --tmpfs /home/conduit/data:rw,noexec,nosuid,size=500m \
         --security-opt no-new-privileges:true \
         --cap-drop ALL \
         --cap-add NET_BIND_SERVICE \
