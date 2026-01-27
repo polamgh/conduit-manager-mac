@@ -100,6 +100,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Terminal manager
         menu.addItem(NSMenuItem(title: "Open Terminal Manager...", action: #selector(openTerminal), keyEquivalent: "t"))
 
+        // Show script path (click to copy)
+        let scriptPath = findConduitScript() ?? "~/conduit-manager/conduit-mac.sh"
+        let pathItem = NSMenuItem(title: "Path: \(scriptPath)", action: #selector(copyScriptPath), keyEquivalent: "")
+        pathItem.tag = 301
+        menu.addItem(pathItem)
+
         menu.addItem(NSMenuItem.separator())
 
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
@@ -227,6 +233,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let url = URL(string: "https://www.docker.com/products/docker-desktop/") {
             NSWorkspace.shared.open(url)
         }
+    }
+
+    @objc func copyScriptPath() {
+        let scriptPath = findConduitScript() ?? "~/conduit-manager/conduit-mac.sh"
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(scriptPath, forType: .string)
+        showNotification(title: "Copied", body: "Script path copied to clipboard")
     }
 
     @objc func openTerminal() {
