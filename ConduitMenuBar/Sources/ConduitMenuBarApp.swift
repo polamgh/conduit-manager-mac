@@ -45,41 +45,40 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func setupMenu() {
         let menu = NSMenu()
 
-        // Status header
-        let statusItem = NSMenuItem(title: "Conduit Status: Checking...", action: nil, keyEquivalent: "")
+        // Status header with icon
+        let statusItem = NSMenuItem(title: "○ Conduit: Checking...", action: nil, keyEquivalent: "")
         statusItem.tag = 100  // Tag for updating
         menu.addItem(statusItem)
 
-        menu.addItem(NSMenuItem.separator())
-
-        // Control items
-        menu.addItem(NSMenuItem(title: "Start / Restart", action: #selector(startConduit), keyEquivalent: "s"))
-        menu.addItem(NSMenuItem(title: "Stop", action: #selector(stopConduit), keyEquivalent: "x"))
-
-        menu.addItem(NSMenuItem.separator())
-
-        // Info items
-        let nodeIdItem = NSMenuItem(title: "Node ID: Loading...", action: #selector(copyNodeId), keyEquivalent: "")
+        // Node ID (clickable to copy)
+        let nodeIdItem = NSMenuItem(title: "Node: Loading...", action: #selector(copyNodeId), keyEquivalent: "")
         nodeIdItem.tag = 101
         menu.addItem(nodeIdItem)
 
+        // Client stats
         let statsItem = NSMenuItem(title: "Clients: -", action: nil, keyEquivalent: "")
         statsItem.tag = 102
         menu.addItem(statsItem)
 
         menu.addItem(NSMenuItem.separator())
 
-        // Actions
-        menu.addItem(NSMenuItem(title: "Open Dashboard", action: #selector(openDashboard), keyEquivalent: "d"))
-        menu.addItem(NSMenuItem(title: "Health Check", action: #selector(runHealthCheck), keyEquivalent: "h"))
+        // Control items
+        let startItem = NSMenuItem(title: "▶ Start", action: #selector(startConduit), keyEquivalent: "s")
+        startItem.tag = 200
+        menu.addItem(startItem)
+
+        let stopItem = NSMenuItem(title: "■ Stop", action: #selector(stopConduit), keyEquivalent: "x")
+        stopItem.tag = 201
+        menu.addItem(stopItem)
 
         menu.addItem(NSMenuItem.separator())
 
-        menu.addItem(NSMenuItem(title: "Open Terminal Manager", action: #selector(openTerminal), keyEquivalent: "t"))
+        // Terminal manager
+        menu.addItem(NSMenuItem(title: "Open Terminal Manager...", action: #selector(openTerminal), keyEquivalent: "t"))
 
         menu.addItem(NSMenuItem.separator())
 
-        menu.addItem(NSMenuItem(title: "Quit Menu Bar App", action: #selector(quitApp), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
 
         self.statusItem?.menu = menu
     }
@@ -89,35 +88,50 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let isRunning = manager.isContainerRunning()
 
-        // Update icon
+        // Update icon - globe with color indicating status
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: isRunning ? "network" : "network.slash", accessibilityDescription: "Conduit")
-            button.image?.isTemplate = true
+            button.image = NSImage(systemSymbolName: "globe", accessibilityDescription: "Conduit")
+            button.image?.isTemplate = false
+            // Green when running, gray when stopped
+            button.contentTintColor = isRunning ? NSColor.systemGreen : NSColor.systemGray
         }
 
         // Update menu items
         if let menu = statusItem?.menu {
+            // Status text
             if let statusMenuItem = menu.item(withTag: 100) {
                 statusMenuItem.title = isRunning ? "● Conduit: Running" : "○ Conduit: Stopped"
             }
 
+            // Node ID
             if let nodeIdItem = menu.item(withTag: 101) {
                 if let nodeId = manager.getNodeId() {
-                    let shortId = String(nodeId.prefix(16)) + "..."
+                    let shortId = String(nodeId.prefix(20)) + "..."
                     nodeIdItem.title = "Node: \(shortId)"
+                    nodeIdItem.toolTip = "Click to copy full Node ID: \(nodeId)"
                     nodeIdItem.isEnabled = true
                 } else {
-                    nodeIdItem.title = "Node ID: Not available"
+                    nodeIdItem.title = "Node: Not available"
                     nodeIdItem.isEnabled = false
                 }
             }
 
+            // Client stats
             if let statsItem = menu.item(withTag: 102) {
                 if isRunning, let stats = manager.getStats() {
                     statsItem.title = "Clients: \(stats.connected) connected"
                 } else {
                     statsItem.title = "Clients: -"
                 }
+            }
+
+            // Update Start/Stop button states
+            if let startItem = menu.item(withTag: 200) {
+                startItem.title = isRunning ? "↻ Restart" : "▶ Start"
+            }
+
+            if let stopItem = menu.item(withTag: 201) {
+                stopItem.isEnabled = isRunning
             }
         }
     }
@@ -146,14 +160,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    @objc func openDashboard() {
-        openInTerminal("view_dashboard")
-    }
-
-    @objc func runHealthCheck() {
-        openInTerminal("health_check")
-    }
-
     @objc func openTerminal() {
         let scriptPath = findConduitScript()
         if let path = scriptPath {
@@ -170,12 +176,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             showNotification(title: "Error", body: "Conduit script not found")
         }
-    }
-
-    func openInTerminal(_ command: String) {
-        // This would require the script to support command-line arguments
-        // For now, just open the terminal manager
-        openTerminal()
     }
 
     func findConduitScript() -> String? {
@@ -298,8 +298,29 @@ class ConduitManager {
         let process = Process()
         let pipe = Pipe()
 
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.arguments = [command] + arguments
+        // GUI apps don't inherit shell PATH, so we need to use absolute paths
+        // Docker Desktop installs docker CLI to /usr/local/bin/docker
+        let executablePath: String
+        if command == "docker" {
+            // Try common Docker paths
+            let dockerPaths = [
+                "/usr/local/bin/docker",
+                "/opt/homebrew/bin/docker",
+                "/Applications/Docker.app/Contents/Resources/bin/docker"
+            ]
+            executablePath = dockerPaths.first { FileManager.default.fileExists(atPath: $0) } ?? "/usr/local/bin/docker"
+        } else {
+            executablePath = "/usr/bin/env"
+        }
+
+        if command == "docker" {
+            process.executableURL = URL(fileURLWithPath: executablePath)
+            process.arguments = arguments
+        } else {
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+            process.arguments = [command] + arguments
+        }
+
         process.standardOutput = pipe
         process.standardError = pipe
 

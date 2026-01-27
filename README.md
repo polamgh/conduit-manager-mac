@@ -44,10 +44,18 @@ curl -sL https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/i
 
 This will:
 - Check for Docker Desktop (guide through installation if missing)
-- Download the script to `~/conduit-manager/`
+- Download the terminal manager to `~/conduit-manager/`
+- Download the Menu Bar app (if available from releases)
 - Create a `conduit` command alias (if possible)
-- Create the seccomp security profile
-- Offer to launch immediately
+
+After installation:
+```bash
+# Start the terminal manager for initial setup
+conduit
+
+# Launch the menu bar app (optional)
+open ~/conduit-manager/Conduit.app
+```
 
 ### Manual Install
 
@@ -430,28 +438,49 @@ conduit-backup-2024-01-15_143022.json
 
 ---
 
-## Menu Bar App (Beta)
+## Menu Bar App
 
-An optional SwiftUI menu bar companion app is available for quick access to Conduit controls.
+A native macOS menu bar app for quick access to Conduit controls without opening Terminal.
 
 ### Features
 
-- Status indicator (running/stopped)
-- Quick start/stop controls
-- Node ID display and copy
+- **Globe icon** in menu bar (green = running, gray = stopped)
+- Quick Start/Stop/Restart controls
+- Node ID display (click to copy)
 - Connected clients count
-- Open terminal dashboard
+- Open Terminal Manager for advanced options
 
-### Building
+### Installation
 
+**Automatic** (via one-line installer):
+```bash
+curl -sL https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/install.sh | bash
+```
+The installer downloads the pre-built app to `~/conduit-manager/Conduit.app`
+
+**Manual** (build from source):
 ```bash
 cd ConduitMenuBar
-swift build -c release
+./build-app.sh
+open Conduit.app
 ```
+
+### Running
+
+```bash
+# Launch the menu bar app
+open ~/conduit-manager/Conduit.app
+```
+
+### Start at Login
+
+To have Conduit appear in your menu bar automatically:
+1. Open **System Settings** > **General** > **Login Items**
+2. Click **+** and add `~/conduit-manager/Conduit.app`
 
 ### Note
 
-The menu bar app requires the main `conduit-mac.sh` script to be installed. It provides a convenient GUI overlay but uses the same Docker container.
+The menu bar app requires the main `conduit-mac.sh` script to be installed first for initial setup. Use the terminal manager to configure clients, bandwidth, and resource limits.
 
 ---
 

@@ -141,33 +141,79 @@ elif [ -d "/usr/local/bin" ]; then
     echo "  sudo ln -sf \"${INSTALL_DIR}/${SCRIPT_NAME}\" /usr/local/bin/conduit"
 fi
 
-# Create alias suggestion
+# Download and install Menu Bar app
+echo -e "${BLUE}Installing Menu Bar App...${NC}"
+MENUBAR_URL="https://github.com/${GITHUB_REPO}/releases/latest/download/Conduit-MenuBar-macOS.zip"
+MENUBAR_ZIP="${INSTALL_DIR}/Conduit-MenuBar.zip"
+MENUBAR_APP="${INSTALL_DIR}/Conduit.app"
+
+# Try to download the menu bar app
+if command -v curl &>/dev/null; then
+    curl -sL -o "$MENUBAR_ZIP" "$MENUBAR_URL" 2>/dev/null || true
+elif command -v wget &>/dev/null; then
+    wget -q -O "$MENUBAR_ZIP" "$MENUBAR_URL" 2>/dev/null || true
+fi
+
+# Check if download succeeded and extract
+if [ -f "$MENUBAR_ZIP" ] && [ -s "$MENUBAR_ZIP" ]; then
+    # Verify it's a valid zip file
+    if unzip -t "$MENUBAR_ZIP" >/dev/null 2>&1; then
+        rm -rf "$MENUBAR_APP" 2>/dev/null || true
+        unzip -q -o "$MENUBAR_ZIP" -d "$INSTALL_DIR"
+        rm -f "$MENUBAR_ZIP"
+
+        if [ -d "$MENUBAR_APP" ]; then
+            echo -e "${GREEN}✔${NC} Menu Bar app installed to: ${MENUBAR_APP}"
+
+            # Add to Login Items (optional - runs at startup)
+            # osascript -e "tell application \"System Events\" to make login item at end with properties {path:\"${MENUBAR_APP}\", hidden:false}" 2>/dev/null || true
+        fi
+    else
+        rm -f "$MENUBAR_ZIP"
+        echo -e "${YELLOW}!${NC} Menu Bar app not available yet (build from source or wait for release)"
+    fi
+else
+    rm -f "$MENUBAR_ZIP" 2>/dev/null || true
+    echo -e "${YELLOW}!${NC} Menu Bar app not available yet (build from source or wait for release)"
+fi
+
+# Show completion message
 echo ""
 echo -e "${CYAN}════════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}Installation Complete!${NC}"
 echo -e "${CYAN}════════════════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "${BOLD}To run Conduit Manager:${NC}"
+
+echo -e "${BOLD}What's installed:${NC}"
+echo "  - Terminal Manager: ${INSTALL_DIR}/${SCRIPT_NAME}"
+if [ -d "$MENUBAR_APP" ]; then
+    echo "  - Menu Bar App:     ${MENUBAR_APP}"
+fi
 echo ""
-echo "  ${INSTALL_DIR}/${SCRIPT_NAME}"
+
+echo -e "${BOLD}Quick Start:${NC}"
 echo ""
 if [ -L "$SYMLINK_PATH" ]; then
-    echo "  Or simply: conduit"
+    echo "  1. Run 'conduit' to set up and start the service"
+else
+    echo "  1. Run '${INSTALL_DIR}/${SCRIPT_NAME}' to set up and start"
+fi
+if [ -d "$MENUBAR_APP" ]; then
+    echo "  2. Run 'open ${MENUBAR_APP}' to launch the menu bar app"
+fi
+echo ""
+
+if [ -d "$MENUBAR_APP" ]; then
+    echo -e "${BOLD}Menu Bar App:${NC}"
+    echo "  The menu bar app shows status, lets you start/stop the service,"
+    echo "  and copy your Node ID. Launch it with:"
+    echo ""
+    echo "    open ${MENUBAR_APP}"
+    echo ""
+    echo "  To start automatically at login, drag Conduit.app to:"
+    echo "    System Settings > General > Login Items"
     echo ""
 fi
 
-# Show final instructions
-echo -e "${BOLD}Installation location:${NC}"
-echo "  ${INSTALL_DIR}/"
-echo ""
-echo -e "${BOLD}To start Conduit Manager, run:${NC}"
-echo ""
-if [ -L "$SYMLINK_PATH" ]; then
-    echo "  conduit"
-else
-    echo "  ${INSTALL_DIR}/${SCRIPT_NAME}"
-fi
-echo ""
-echo -e "${YELLOW}Note: The installer does not auto-launch when piped through bash.${NC}"
-echo -e "${YELLOW}Please run the command above to start.${NC}"
+echo -e "${YELLOW}Note: Run the terminal command first to complete initial setup.${NC}"
 echo ""
