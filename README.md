@@ -1,151 +1,265 @@
-# 🚀 Conduit Manager for macOS
+<h1 align="center">🌐 Psiphon Conduit Manager</h1>
+<p align="center"><strong>macOS Edition</strong></p>
 
-A **professional, lightweight, and intelligent** management tool for deploying **Psiphon Conduit** nodes on **macOS** using **Docker**.  
-Built to help people access the **open internet reliably**, with **zero configuration hassle**.
+<p align="center">
+  Help people in censored regions access the free internet.<br>
+  Run a <a href="https://conduit.psiphon.ca/">Psiphon Conduit</a> proxy node on your Mac.
+</p>
 
----
+<p align="center">
+  <a href="#-quick-start">English</a> · <a href="#-نصب-سریع">فارسی</a>
+</p>
 
-## 🔧 Prerequisites
-
-Before installation, make sure **Docker Desktop for macOS** is installed and running.
-
-- Download Docker Desktop from the official website:  
-  https://www.docker.com/products/docker-desktop/
-- After installation, **open Docker Desktop** and ensure it is running.
-
-> ⚠️ This tool deploys Psiphon Conduit **inside a Docker container**, so Docker Desktop is required.
-
----
-
-## 📦 Quick Install
-
-Open **Terminal** and run the following commands:
-
-```bash
-# 1. Download the script
-curl -L -o conduit-mac.sh https://raw.githubusercontent.com/polamgh/conduit-manager-mac/main/conduit-mac.sh
-
-# 2. Make it executable
-chmod +x conduit-mac.sh
-
-# 3. Run it
-./conduit-mac.sh
-```
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-macOS-blue" alt="macOS">
+  <img src="https://img.shields.io/badge/requires-Docker%20Desktop-blue" alt="Docker">
+  <img src="https://img.shields.io/github/v/release/moghtaderi/conduit-manager-mac" alt="Release">
+</p>
 
 ---
 
 ## ✨ Features
 
-- 🍏 **macOS-Optimized UI**  
-  Clean, dashboard-style interface designed specifically for the macOS Terminal.
-
-- 🧠 **Smart Logic**  
-  Automatically detects whether the service should be installed, started, or restarted.
-
-- 📊 **Live Dashboard**  
-  Real-time monitoring of **CPU**, **RAM**, **connected users**, and **traffic usage**.
-
-- 🛡️ **Safety Checks**  
-  Verifies **Docker Desktop** status before execution to prevent runtime errors.
-
-- ⚙️ **Easy Reconfiguration**  
-  Instantly change **Max Clients** or **Bandwidth limits** via the interactive menu.
-
-- 🚀 **Zero Extra Dependencies**  
-  Works out-of-the-box using standard macOS tools and Docker Desktop.
+| Feature | Description |
+|---------|-------------|
+| 🖥️ **Menu Bar App** | Native macOS app - Start/Stop with one click |
+| 📊 **Live Stats** | See connected clients & traffic in real-time |
+| 🔒 **Security Hardened** | Read-only filesystem, isolated network, seccomp |
+| 🐳 **Docker Status** | Auto-detects if Docker is running |
+| 🌙 **Dark Mode** | Works perfectly in light and dark mode |
 
 ---
 
-## 📋 Menu Options
+## 🚀 Quick Start
 
-| Option | Function |
-|------|---------|
-| **1. Start / Restart** | Smart install (if new), start (if stopped), or restart (if running). |
-| **2. Stop Service** | Safely stops the Conduit container. |
-| **3. Live Dashboard** | Displays real-time resource usage and traffic statistics (auto-refresh). |
-| **4. View Raw Logs** | Streams raw Docker logs for debugging and inspection. |
-| **5. Reconfigure** | Reinstalls the container to update client or bandwidth settings. |
+### Step 1: Install Docker Desktop
+
+Download from **[docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/)**
+
+### Step 2: Install Conduit Manager
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/install.sh | bash
+```
+
+### Step 3: Run Setup
+
+```bash
+~/conduit-manager/conduit-mac.sh
+```
+
+### Step 4: Configure
+
+| Step | Press | What it does |
+|:----:|:-----:|--------------|
+| 1️⃣ | `7` | Set your CPU & RAM limits |
+| 2️⃣ | `6` | Install the Conduit service |
+| 3️⃣ | `m` | Open the Menu Bar App |
+
+✅ **Done!** Your node is now helping people access the free internet.
 
 ---
 
-## ⚙️ Configuration Guide
+## 🖥️ Menu Bar App
 
-| Setting | Default | Description |
-|-------|---------|-------------|
-| **Max Clients** | 200 | Maximum number of concurrent users. |
-| **Bandwidth** | 5 Mbps | Speed limit per user connection. |
+The menu bar app gives you quick control without opening Terminal:
+
+```
+┌─────────────────────────────┐
+│ ● Conduit: Running          │
+│ Clients: 5 connected        │
+│ Traffic: ↑ 1.2 GB  ↓ 3.4 GB │
+├─────────────────────────────┤
+│ ↻ Restart                   │
+│ ■ Stop                      │
+├─────────────────────────────┤
+│ Open Terminal Manager...    │
+│ Path: ~/conduit-manager/... │
+├─────────────────────────────┤
+│ Quit                        │
+└─────────────────────────────┘
+```
+
+### Menu Bar Icons
+
+| Icon | Meaning |
+|:----:|---------|
+| 🌐 (filled) | Conduit is **running** |
+| 🌐 (outline) | Conduit is **stopped** |
+| ⚠️ (warning) | Docker is **not running** |
+
+### Start at Login
+
+System Settings → General → Login Items → Add `Conduit.app`
 
 ---
 
-## 💻 Hardware Recommendations (Mac)
+## ⌨️ CLI Menu Options
 
-- **Apple Silicon (M1 / M2 / M3)**  
-  Easily handles **400–800+ clients** with excellent efficiency.
+```
+╔═══════════════════════════════════════╗
+║      PSIPHON CONDUIT MANAGER          ║
+╚═══════════════════════════════════════╝
 
-- **Intel-based Macs**  
-  Recommended to limit between **200–400 clients** to manage heat and performance.
+ Service
+   1. ▶  Start / Restart
+   2. ⏹  Stop Service
+   3. 📊 Live Dashboard
+   4. 📜 View Logs
+   5. 🩺 Health Check
+
+ Configuration
+   6. ⚙  Reconfigure
+   7. 📈 Resource Limits
+   8. 🔒 Security Settings
+   9. 🆔 Node Identity
+
+ Backup & Maintenance
+   b. 💾 Backup Key
+   r. 📥 Restore Key
+   u. 🔄 Check for Updates
+   x. 🗑  Uninstall
+
+ Menu Bar App
+   m. 🖥  Open Menu Bar App
+
+   0. 🚪 Exit
+```
+
+---
+
+## 🔒 Security
+
+Your Mac is fully protected:
+
+| Protection | What it means |
+|------------|---------------|
+| 📁 Read-only filesystem | Container can't write to your disk |
+| 🌐 Isolated network | No access to your local network |
+| ⬇️ Dropped capabilities | Minimal Linux privileges |
+| 📊 Resource limits | CPU & RAM are capped |
+| 🛡️ Seccomp filtering | Dangerous syscalls blocked |
+
+---
+
+## 🗑️ Uninstall
+
+**Easy way:** Press `x` in the CLI menu
+
+**Manual way:**
+```bash
+docker stop conduit-mac && docker rm conduit-mac
+docker volume rm conduit-data
+docker network rm conduit-network
+rm -rf ~/conduit-manager ~/.conduit-*
+```
 
 ---
 
 <div dir="rtl">
 
-# 🇮🇷 مدیریت کاندوییت (نسخه macOS)
+## 🚀 نصب سریع
 
-یک ابزار **حرفه‌ای، سبک و هوشمند** برای مدیریت و راه‌اندازی نودهای **Psiphon Conduit** روی سیستم‌عامل **macOS** با استفاده از **Docker**.
+### مرحله ۱: نصب Docker Desktop
 
----
+از **[docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/)** دانلود کنید
 
-## 🔧 پیش‌نیازها
+### مرحله ۲: نصب Conduit Manager
 
-قبل از نصب، مطمئن شوید که **Docker Desktop برای macOS** روی سیستم شما نصب و اجرا شده است.
-
-- دانلود Docker Desktop از سایت رسمی:  
-  https://www.docker.com/products/docker-desktop/
-- پس از نصب، حتماً **Docker Desktop را اجرا کنید**.
-
-> ⚠️ این ابزار نود سایفون کاندوییت را **داخل Docker** اجرا می‌کند، بنابراین وجود Docker Desktop الزامی است.
-
----
-
-## 📦 نصب سریع
+</div>
 
 ```bash
-# ۱. دانلود اسکریپت
-curl -L -o conduit-mac.sh https://raw.githubusercontent.com/polamgh/conduit-manager-mac/main/conduit-mac.sh
+curl -fsSL https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/install.sh | bash
+```
 
-# ۲. دادن دسترسی اجرا
-chmod +x conduit-mac.sh
+<div dir="rtl">
 
-# ۳. اجرا
-./conduit-mac.sh
+### مرحله ۳: اجرای برنامه
+
+</div>
+
+```bash
+~/conduit-manager/conduit-mac.sh
+```
+
+<div dir="rtl">
+
+### مرحله ۴: پیکربندی
+
+| مرحله | کلید | توضیح |
+|:-----:|:----:|-------|
+| ۱ | `7` | تنظیم محدودیت CPU و RAM |
+| ۲ | `6` | نصب سرویس Conduit |
+| ۳ | `m` | باز کردن برنامه Menu Bar |
+
+✅ **تمام!** نود شما اکنون فعال است و به دیگران کمک می‌کند.
+
+---
+
+## 🖥️ برنامه Menu Bar
+
+کنترل سریع بدون نیاز به Terminal:
+
+</div>
+
+```
+┌─────────────────────────────┐
+│ ● Conduit: Running          │  ← وضعیت
+│ Clients: 5 connected        │  ← تعداد کاربران
+│ Traffic: ↑ 1.2 GB  ↓ 3.4 GB │  ← ترافیک
+├─────────────────────────────┤
+│ ↻ Restart                   │  ← ریستارت
+│ ■ Stop                      │  ← توقف
+└─────────────────────────────┘
+```
+
+<div dir="rtl">
+
+### آیکون‌های Menu Bar
+
+| آیکون | معنی |
+|:-----:|------|
+| 🌐 (پر) | Conduit **در حال اجراست** |
+| 🌐 (خالی) | Conduit **متوقف است** |
+| ⚠️ (هشدار) | Docker **اجرا نیست** |
+
+---
+
+## 🔒 امنیت
+
+مک شما کاملاً محافظت شده است:
+
+| محافظت | توضیح |
+|--------|-------|
+| 📁 فایل‌سیستم فقط‌خواندنی | کانتینر نمی‌تواند روی دیسک بنویسد |
+| 🌐 شبکه ایزوله | دسترسی به شبکه محلی ندارد |
+| ⬇️ امتیازات محدود | حداقل دسترسی‌های لینوکس |
+| 📊 محدودیت منابع | CPU و RAM محدود شده |
+
+---
+
+## 🗑️ حذف برنامه
+
+**روش آسان:** در منوی CLI کلید `x` را بزنید
+
+**روش دستی:**
+
+</div>
+
+```bash
+docker stop conduit-mac && docker rm conduit-mac
+docker volume rm conduit-data
+docker network rm conduit-network
+rm -rf ~/conduit-manager ~/.conduit-*
 ```
 
 ---
 
-## ✨ ویژگی‌ها
+## 🙏 Credits
 
-- رابط کاربری مخصوص مک با داشبورد خوانا  
-- تشخیص هوشمند وضعیت سرویس  
-- نمایش زنده مصرف منابع و کاربران  
-- بررسی فعال بودن Docker Desktop  
-- تغییر سریع تنظیمات کاربران و سرعت  
-- بدون پیش‌نیاز اضافی
+- [Psiphon](https://psiphon.ca/) - Psiphon Conduit project
+- [SamNet-dev/conduit-manager](https://github.com/SamNet-dev/conduit-manager) - Original Linux script
 
----
+## 📄 License
 
-## ⚙️ تنظیمات پیش‌فرض
-
-| تنظیم | مقدار پیش‌فرض |
-|------|---------------|
-| Max Clients | 200 |
-| Bandwidth | 5 Mbps |
-
----
-
-## 💻 توصیه سخت‌افزاری
-
-- تراشه‌های اپل: تا ۸۰۰ کاربر یا بیشتر  
-- مک‌های اینتلی: ۲۰۰ تا ۴۰۰ کاربر
-
-</div>
-
+MIT
