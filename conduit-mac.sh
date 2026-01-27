@@ -262,15 +262,25 @@ ensure_network_exists() {
 # container_exists: Check if the container exists (running or stopped)
 # Returns:
 #   0 if container exists, 1 if not
+# Note: We use 'if grep' pattern to avoid set -e exit on no match
 container_exists() {
-    docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"
+    if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 # container_running: Check if the container is currently running
 # Returns:
 #   0 if running, 1 if not
+# Note: We use 'if grep' pattern to avoid set -e exit on no match
 container_running() {
-    docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"
+    if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 # remove_container: Safely remove the container if it exists
@@ -544,31 +554,35 @@ view_dashboard() {
     log_info "Dashboard view started"
 
     # Set up signal handler for clean exit on Ctrl+C
-    trap 'log_info "Dashboard view ended"; break' SIGINT
+    trap 'log_info "Dashboard view ended"; return 0' SIGINT
 
     while true; do
         print_header
         echo -e "${BOLD}LIVE DASHBOARD${NC} (Press ${YELLOW}Ctrl+C${NC} to Exit)"
         echo "══════════════════════════════════════════════════════"
 
-        if container_running; then
+        # Check if container is running (use || true to prevent exit on non-zero)
+        if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
             # ------------------------------------------------------------------
             # Fetch container resource statistics from Docker
             # ------------------------------------------------------------------
-            local docker_stats
-            docker_stats=$(docker stats --no-stream --format "{{.CPUPerc}}|{{.MemUsage}}" "$CONTAINER_NAME" 2>/dev/null)
+            local docker_stats=""
+            docker_stats=$(docker stats --no-stream --format "{{.CPUPerc}}|{{.MemUsage}}" "$CONTAINER_NAME" 2>/dev/null || true)
 
-            local cpu
-            local ram
-            cpu=$(echo "$docker_stats" | cut -d'|' -f1)
-            ram=$(echo "$docker_stats" | cut -d'|' -f2)
+            local cpu="N/A"
+            local ram="N/A"
+            if [[ -n "$docker_stats" ]]; then
+                cpu=$(echo "$docker_stats" | cut -d'|' -f1)
+                ram=$(echo "$docker_stats" | cut -d'|' -f2)
+            fi
 
             # ------------------------------------------------------------------
             # Parse connection and traffic statistics from container logs
             # Look for [STATS] lines which contain connection information
+            # Note: grep returns 1 if no match, so we use || true to prevent exit
             # ------------------------------------------------------------------
-            local log_line
-            log_line=$(docker logs --tail 50 "$CONTAINER_NAME" 2>&1 | grep "\[STATS\]" | tail -n 1)
+            local log_line=""
+            log_line=$(docker logs --tail 50 "$CONTAINER_NAME" 2>&1 | grep "\[STATS\]" | tail -n 1 || true)
 
             local conn="0"
             local up="0B"
@@ -576,21 +590,21 @@ view_dashboard() {
 
             if [[ -n "$log_line" ]]; then
                 # Extract connected users count using sed pattern matching
-                conn=$(echo "$log_line" | sed -n 's/.*Connected:[[:space:]]*\([0-9]*\).*/\1/p')
+                conn=$(echo "$log_line" | sed -n 's/.*Connected:[[:space:]]*\([0-9]*\).*/\1/p' || true)
                 conn="${conn:-0}"
 
                 # Extract upload traffic
-                up=$(echo "$log_line" | sed -n 's/.*Up:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ')
+                up=$(echo "$log_line" | sed -n 's/.*Up:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ' || true)
                 up="${up:-0B}"
 
                 # Extract download traffic
-                down=$(echo "$log_line" | sed -n 's/.*Down:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ')
+                down=$(echo "$log_line" | sed -n 's/.*Down:[[:space:]]*\([^|]*\).*/\1/p' | tr -d ' ' || true)
                 down="${down:-0B}"
             fi
 
             # Fetch container uptime
-            local uptime
-            uptime=$(docker ps -f "name=$CONTAINER_NAME" --format '{{.Status}}')
+            local uptime=""
+            uptime=$(docker ps -f "name=$CONTAINER_NAME" --format '{{.Status}}' || true)
 
             # ------------------------------------------------------------------
             # Display formatted dashboard
@@ -632,7 +646,8 @@ view_logs() {
 
     if container_running; then
         # Stream the last 100 lines and follow new output
-        docker logs -f --tail 100 "$CONTAINER_NAME"
+        # Use || true because user will Ctrl+C to exit, which returns non-zero
+        docker logs -f --tail 100 "$CONTAINER_NAME" || true
     else
         echo -e "${YELLOW}Container is not running.${NC}"
         echo "Start the container first to view logs."
