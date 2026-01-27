@@ -35,7 +35,7 @@ set -euo pipefail
 # VERSION AND CONFIGURATION
 # ==============================================================================
 
-readonly VERSION="1.4.0"                                          # Script version
+readonly VERSION="1.5.2"                                          # Script version
 
 # Container and image settings
 readonly CONTAINER_NAME="conduit-mac"                             # Docker container name
@@ -1983,6 +1983,54 @@ check_for_updates() {
 }
 
 # ==============================================================================
+# MENU BAR APP
+# ==============================================================================
+
+# open_menubar_app: Open the Conduit menu bar app or show installation instructions
+# The menu bar app provides a GUI for controlling the Conduit service
+open_menubar_app() {
+    print_header
+    echo -e "${BOLD}MENU BAR APP${NC}"
+    echo "══════════════════════════════════════════════════════"
+    echo ""
+
+    local app_path="/Applications/Conduit.app"
+
+    if [ -d "$app_path" ]; then
+        echo -e "${GREEN}✔ Menu bar app is installed${NC}"
+        echo ""
+        echo "Opening Conduit menu bar app..."
+        open "$app_path"
+        echo ""
+        echo -e "${CYAN}The Conduit icon will appear in your menu bar.${NC}"
+        echo ""
+        echo "══════════════════════════════════════════════════════"
+        read -n 1 -s -r -p "Press any key to return..."
+    else
+        echo -e "${YELLOW}⚠ Menu bar app is not installed${NC}"
+        echo ""
+        echo "The Conduit menu bar app provides a convenient GUI to:"
+        echo "  • Start/Stop the Conduit service"
+        echo "  • View connection stats and traffic"
+        echo "  • Monitor Docker status"
+        echo ""
+        echo -e "${BOLD}To install the menu bar app:${NC}"
+        echo ""
+        echo "  1. Download from GitHub Releases:"
+        echo -e "     ${CYAN}https://github.com/moghtaderi/conduit-manager-mac/releases${NC}"
+        echo ""
+        echo "  2. Or reinstall using the one-liner:"
+        echo -e "     ${CYAN}curl -fsSL https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/install.sh | bash${NC}"
+        echo ""
+        echo "══════════════════════════════════════════════════════"
+        read -p "Open GitHub releases page? [y/N]: " open_releases
+        if [[ "$open_releases" =~ ^[Yy]$ ]]; then
+            open "https://github.com/moghtaderi/conduit-manager-mac/releases" 2>/dev/null || true
+        fi
+    fi
+}
+
+# ==============================================================================
 # MAIN MENU LOOP
 # ==============================================================================
 
@@ -2012,6 +2060,9 @@ while true; do
     echo "   u. 🔄 Check for Updates"
     echo "   x. 🗑  Uninstall"
     echo ""
+    echo -e " ${BOLD}Menu Bar App${NC}"
+    echo "   m. 🖥  Open Menu Bar App"
+    echo ""
     echo "   0. 🚪 Exit"
     echo ""
     read -p " Select option: " option
@@ -2034,6 +2085,7 @@ while true; do
         [rR]) restore_key ;;
         [uU]) check_for_updates ;;
         [xX]) uninstall_all ;;
+        [mM]) open_menubar_app ;;
         0)
             log_info "=== Conduit Manager session ended ==="
             echo -e "${CYAN}Goodbye!${NC}"

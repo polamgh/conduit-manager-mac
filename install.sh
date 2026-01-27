@@ -215,5 +215,9 @@ if [ -d "$MENUBAR_APP" ]; then
     echo ""
 fi
 
-echo -e "${YELLOW}Note: Run ~/conduit-manager/conduit-mac.sh first to complete initial setup.${NC}"
+echo -e "${YELLOW}Press Enter to open the CLI manager and complete initial setup...${NC}"
 echo ""
+read -r
+
+# Launch the CLI manager
+exec "${INSTALL_DIR}/${SCRIPT_NAME}"
