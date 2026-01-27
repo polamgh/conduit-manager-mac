@@ -75,7 +75,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Terminal manager
         menu.addItem(NSMenuItem(title: "Open Terminal Manager...", action: #selector(openTerminal), keyEquivalent: "t"))
-        menu.addItem(NSMenuItem(title: "Copy Node ID", action: #selector(copyNodeId), keyEquivalent: "c"))
 
         menu.addItem(NSMenuItem.separator())
 
@@ -159,14 +158,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         showNotification(title: "Conduit", body: "Conduit service stopped")
     }
 
-    @objc func copyNodeId() {
-        if let nodeId = conduitManager?.getNodeId() {
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(nodeId, forType: .string)
-            showNotification(title: "Copied", body: "Node ID copied to clipboard")
-        }
-    }
-
     @objc func openTerminal() {
         let scriptPath = findConduitScript()
         if let path = scriptPath {
@@ -243,35 +234,6 @@ class ConduitManager {
 
     func stopContainer() {
         _ = runCommand("docker", arguments: ["stop", containerName])
-    }
-
-    func getNodeId() -> String? {
-        // Use docker to read the key file
-        let output = runCommand("docker", arguments: [
-            "run", "--rm",
-            "-v", "conduit-data:/data",
-            "alpine",
-            "cat", "/data/conduit_key.json"
-        ])
-
-        if output.isEmpty || output.contains("error") {
-            return nil
-        }
-
-        // Parse the JSON to extract privateKeyBase64
-        // This is a simplified extraction
-        if let range = output.range(of: "privateKeyBase64\":\"") {
-            let start = range.upperBound
-            if let end = output[start...].firstIndex(of: "\"") {
-                let base64Key = String(output[start..<end])
-                // Decode and get last 32 bytes, then re-encode
-                if let data = Data(base64Encoded: base64Key), data.count >= 32 {
-                    let last32 = data.suffix(32)
-                    return last32.base64EncodedString().replacingOccurrences(of: "=", with: "")
-                }
-            }
-        }
-        return nil
     }
 
     func getStats() -> (connected: Int, connecting: Int)? {

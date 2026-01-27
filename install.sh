@@ -215,5 +215,5 @@ if [ -d "$MENUBAR_APP" ]; then
     echo ""
 fi
 
-echo -e "${YELLOW}Note: Run the terminal command first to complete initial setup.${NC}"
+echo -e "${YELLOW}Note: Run ~/conduit-manager/conduit-mac.sh first to complete initial setup.${NC}"
 echo ""
