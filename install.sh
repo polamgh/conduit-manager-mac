@@ -59,10 +59,9 @@ if [ ! -d "/Applications/Docker.app" ]; then
     echo "  3. Install and launch Docker Desktop"
     echo "  4. Run this installer again"
     echo ""
-    read -p "Open Docker Desktop download page? [y/N]: " open_browser
-    if [[ "$open_browser" =~ ^[Yy]$ ]]; then
-        open "https://www.docker.com/products/docker-desktop/" 2>/dev/null || true
-    fi
+    # Open browser automatically since we can't read input when piped
+    echo -e "${BLUE}Opening Docker Desktop download page...${NC}"
+    open "https://www.docker.com/products/docker-desktop/" 2>/dev/null || true
     exit 1
 fi
 echo -e "${GREEN}✔${NC} Docker Desktop is installed"
@@ -157,9 +156,18 @@ if [ -L "$SYMLINK_PATH" ]; then
     echo ""
 fi
 
-# Offer to run immediately
-read -p "Launch Conduit Manager now? [Y/n]: " launch_now
-if [[ ! "$launch_now" =~ ^[Nn]$ ]]; then
-    echo ""
-    exec "${INSTALL_DIR}/${SCRIPT_NAME}"
+# Show final instructions
+echo -e "${BOLD}Installation location:${NC}"
+echo "  ${INSTALL_DIR}/"
+echo ""
+echo -e "${BOLD}To start Conduit Manager, run:${NC}"
+echo ""
+if [ -L "$SYMLINK_PATH" ]; then
+    echo "  conduit"
+else
+    echo "  ${INSTALL_DIR}/${SCRIPT_NAME}"
 fi
+echo ""
+echo -e "${YELLOW}Note: The installer does not auto-launch when piped through bash.${NC}"
+echo -e "${YELLOW}Please run the command above to start.${NC}"
+echo ""
