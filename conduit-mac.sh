@@ -982,12 +982,24 @@ view_logs() {
     printf '\033[2J\033[3J\033[H'
     echo -e "${CYAN}Streaming Logs (Press Ctrl+C to Exit)...${NC}"
     echo "------------------------------------------------"
+    echo ""
 
     if container_running; then
-        docker logs -f --tail 100 "$CONTAINER_NAME" || true
+        # Trap SIGINT to gracefully handle Ctrl+C without exiting script
+        trap 'echo ""; echo ""; echo -e "${CYAN}Log streaming stopped.${NC}"' SIGINT
+
+        # Stream logs - the || true handles the interrupt exit code
+        docker logs -f --tail 100 "$CONTAINER_NAME" 2>&1 || true
+
+        # Reset trap
+        trap - SIGINT
+
+        echo ""
+        read -n 1 -s -r -p "Press any key to return..."
     else
         echo -e "${YELLOW}Container is not running.${NC}"
         echo "Start the container first to view logs."
+        echo ""
         read -n 1 -s -r -p "Press any key to return..."
     fi
 
