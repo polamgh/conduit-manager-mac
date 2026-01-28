@@ -4,10 +4,10 @@
 # ║                           For macOS                                       ║
 # ╠═══════════════════════════════════════════════════════════════════════════╣
 # ║  Usage:                                                                   ║
-# ║    curl -sL https://raw.githubusercontent.com/polamgh/conduit-manager-mac/main/install.sh | bash
+# ║    curl -sL https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/install.sh | bash
 # ║                                                                           ║
 # ║  Or with wget:                                                            ║
-# ║    wget -qO- https://raw.githubusercontent.com/polamgh/conduit-manager-mac/main/install.sh | bash
+# ║    wget -qO- https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/install.sh | bash
 # ╚═══════════════════════════════════════════════════════════════════════════╝
 
 set -e
@@ -22,7 +22,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Configuration
-GITHUB_REPO="polamgh/conduit-manager-mac"
+GITHUB_REPO="moghtaderi/conduit-manager-mac"
 SCRIPT_NAME="conduit-mac.sh"
 INSTALL_DIR="${HOME}/conduit-manager"
 

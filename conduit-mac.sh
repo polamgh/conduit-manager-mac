@@ -47,7 +47,7 @@ readonly LOG_FILE="${HOME}/.conduit-manager.log"                  # Local log fi
 readonly BACKUP_DIR="${HOME}/.conduit-backups"                    # Backup directory for keys
 readonly CONFIG_FILE="${HOME}/.conduit-config"                    # User configuration file
 readonly SECCOMP_FILE="${HOME}/.conduit-seccomp.json"             # Seccomp security profile
-readonly GITHUB_REPO="polamgh/conduit-manager-mac"                # GitHub repository for updates
+readonly GITHUB_REPO="moghtaderi/conduit-manager-mac"                # GitHub repository for updates
 
 # ------------------------------------------------------------------------------
 # RESOURCE LIMITS - Default values (can be overridden by user config)
@@ -1852,7 +1852,7 @@ uninstall_all() {
     fi
 
     echo "To reinstall, run:"
-    echo -e "  ${CYAN}curl -L -o conduit-mac.sh https://raw.githubusercontent.com/polamgh/conduit-manager-mac/main/conduit-mac.sh && chmod +x conduit-mac.sh && ./conduit-mac.sh${NC}"
+    echo -e "  ${CYAN}curl -L -o conduit-mac.sh https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/conduit-mac.sh && chmod +x conduit-mac.sh && ./conduit-mac.sh${NC}"
     echo ""
     echo -e "${CYAN}Goodbye!${NC}"
 
@@ -1872,7 +1872,7 @@ check_for_updates() {
     echo "Checking for updates..."
     echo ""
 
-    local github_url="https://raw.githubusercontent.com/polamgh/conduit-manager-mac/main/conduit-mac.sh"
+    local github_url="https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/conduit-mac.sh"
 
     # Try to fetch the latest version from GitHub
     local remote_version=""
@@ -1881,7 +1881,7 @@ check_for_updates() {
     if [ -z "$remote_version" ]; then
         echo -e "${YELLOW}Could not check for updates.${NC}"
         echo "Check your internet connection or visit:"
-        echo "  https://github.com/polamgh/conduit-manager-mac"
+        echo "  https://github.com/moghtaderi/conduit-manager-mac"
         echo ""
         echo "══════════════════════════════════════════════════════"
         read -n 1 -s -r -p "Press any key to return..."
@@ -2024,15 +2024,15 @@ open_menubar_app() {
         echo -e "${BOLD}To install the menu bar app:${NC}"
         echo ""
         echo "  1. Download from GitHub Releases:"
-        echo -e "     ${CYAN}https://github.com/polamgh/conduit-manager-mac/releases${NC}"
+        echo -e "     ${CYAN}https://github.com/moghtaderi/conduit-manager-mac/releases${NC}"
         echo ""
         echo "  2. Or reinstall using the one-liner:"
-        echo -e "     ${CYAN}curl -fsSL https://raw.githubusercontent.com/polamgh/conduit-manager-mac/main/install.sh | bash${NC}"
+        echo -e "     ${CYAN}curl -fsSL https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/install.sh | bash${NC}"
         echo ""
         echo "══════════════════════════════════════════════════════"
         read -p "Open GitHub releases page? [y/N]: " open_releases
         if [[ "$open_releases" =~ ^[Yy]$ ]]; then
-            open "https://github.com/polamgh/conduit-manager-mac/releases" 2>/dev/null || true
+            open "https://github.com/moghtaderi/conduit-manager-mac/releases" 2>/dev/null || true
         fi
     fi
 }
