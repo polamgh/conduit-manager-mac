@@ -22,7 +22,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Configuration
-GITHUB_REPO="moghtaderi/conduit-manager-mac"
+GITHUB_REPO="polamgh/conduit-manager-mac"
 SCRIPT_NAME="conduit-mac.sh"
 INSTALL_DIR="${HOME}/conduit-manager"
 
