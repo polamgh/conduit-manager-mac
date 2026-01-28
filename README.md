@@ -27,6 +27,7 @@
 | 🔒 **Security Hardened** | Read-only filesystem, isolated network, seccomp |
 | 🐳 **Docker Status** | Auto-detects if Docker is running |
 | 🌙 **Dark Mode** | Works perfectly in light and dark mode |
+| 🎁 **Rewards** | Easy QR code generation to claim node rewards |
 
 ---
 
@@ -113,6 +114,7 @@ System Settings → General → Login Items → Add `Conduit.app`
    7. 📈 Resource Limits
    8. 🔒 Security Settings
    9. 🆔 Node Identity
+   c. 🎁 Claim Rewards
 
  Backup & Maintenance
    b. 💾 Backup Key
