@@ -4,10 +4,10 @@
 # ║                           For macOS                                       ║
 # ╠═══════════════════════════════════════════════════════════════════════════╣
 # ║  Usage:                                                                   ║
-# ║    curl -sL https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/install.sh | bash
+# ║    curl -sL https://raw.githubusercontent.com/polamgh/conduit-manager-mac/main/install.sh | bash
 # ║                                                                           ║
 # ║  Or with wget:                                                            ║
-# ║    wget -qO- https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/install.sh | bash
+# ║    wget -qO- https://raw.githubusercontent.com/polamgh/conduit-manager-mac/main/install.sh | bash
 # ╚═══════════════════════════════════════════════════════════════════════════╝
 
 set -e
