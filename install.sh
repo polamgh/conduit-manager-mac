@@ -4,10 +4,10 @@
 # ║                           For macOS                                       ║
 # ╠═══════════════════════════════════════════════════════════════════════════╣
 # ║  Usage:                                                                   ║
-# ║    curl -sL https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/install.sh | bash
+# ║    curl -sL https://raw.githubusercontent.com/polamgh/conduit-manager-mac/main/install.sh | bash
 # ║                                                                           ║
 # ║  Or with wget:                                                            ║
-# ║    wget -qO- https://raw.githubusercontent.com/moghtaderi/conduit-manager-mac/main/install.sh | bash
+# ║    wget -qO- https://raw.githubusercontent.com/polamgh/conduit-manager-mac/main/install.sh | bash
 # ╚═══════════════════════════════════════════════════════════════════════════╝
 
 set -e
@@ -22,7 +22,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Configuration
-GITHUB_REPO="moghtaderi/conduit-manager-mac"
+GITHUB_REPO="polamgh/conduit-manager-mac"
 SCRIPT_NAME="conduit-mac.sh"
 INSTALL_DIR="${HOME}/conduit-manager"
 
@@ -240,9 +240,9 @@ fi
 
 # Download and install Menu Bar app
 echo -e "${BLUE}Installing Menu Bar App...${NC}"
-MENUBAR_URL="https://github.com/${GITHUB_REPO}/releases/latest/download/Conduit-MenuBar-macOS.zip"
-MENUBAR_ZIP="${INSTALL_DIR}/Conduit-MenuBar.zip"
-MENUBAR_APP="${INSTALL_DIR}/Conduit.app"
+MENUBAR_URL="https://github.com/${GITHUB_REPO}/releases/latest/download/Conduit-Mac-MenuBar-macOS.zip"
+MENUBAR_ZIP="${INSTALL_DIR}/Conduit-Mac-MenuBar.zip"
+MENUBAR_APP="${INSTALL_DIR}/Conduit-Mac.app"
 
 # Try to download the menu bar app
 if command -v curl &>/dev/null; then
@@ -315,7 +315,7 @@ if [ -d "$MENUBAR_APP" ]; then
     echo ""
     echo "    open ${MENUBAR_APP}"
     echo ""
-    echo "  To start automatically at login, drag Conduit.app to:"
+    echo "  To start automatically at login, drag Conduit-Mac.app to:"
     echo "    System Settings > General > Login Items"
     echo ""
 fi

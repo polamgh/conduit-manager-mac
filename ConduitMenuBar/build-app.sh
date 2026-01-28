@@ -5,11 +5,11 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-APP_NAME="Conduit"
-BUNDLE_ID="com.psiphon.conduit-menubar"
+APP_NAME="Conduit-Mac"
+BUNDLE_ID="com.psiphon.conduit-mac-menubar"
 VERSION="1.0.0"
 
-echo "Building Conduit Menu Bar App..."
+echo "Building Conduit-Mac Menu Bar App..."
 
 # Build release binary
 cd "$SCRIPT_DIR"
@@ -55,7 +55,7 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSAppleEventsUsageDescription</key>
-    <string>Conduit needs to open Terminal to run the manager script.</string>
+    <string>Conduit-Mac needs to open Terminal to run the manager script.</string>
 </dict>
 </plist>
 EOF

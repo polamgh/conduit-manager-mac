@@ -1,19 +1,19 @@
 # Homebrew Formula for Psiphon Conduit Manager (macOS)
 #
 # Installation:
-#   brew tap moghtaderi/conduit-manager-mac https://github.com/moghtaderi/conduit-manager-mac
+#   brew tap polamgh/conduit-manager-mac https://github.com/polamgh/conduit-manager-mac
 #   brew install conduit-mac
 #
 # Or direct install:
-#   brew install moghtaderi/conduit-manager-mac/conduit-mac
+#   brew install polamgh/conduit-manager-mac/conduit-mac
 
 class ConduitMac < Formula
   desc "Security-hardened Psiphon Conduit Manager for macOS"
-  homepage "https://github.com/moghtaderi/conduit-manager-mac"
-  url "https://github.com/moghtaderi/conduit-manager-mac/archive/refs/tags/v1.4.0.tar.gz"
+  homepage "https://github.com/polamgh/conduit-manager-mac"
+  url "https://github.com/polamgh/conduit-manager-mac/archive/refs/tags/v1.4.0.tar.gz"
   sha256 "PLACEHOLDER_SHA256"  # Update this after creating release
   license "MIT"
-  head "https://github.com/moghtaderi/conduit-manager-mac.git", branch: "main"
+  head "https://github.com/polamgh/conduit-manager-mac.git", branch: "main"
 
   depends_on :macos
 
@@ -43,7 +43,7 @@ class ConduitMac < Formula
         - Backup and restore
 
       For more information:
-        https://github.com/moghtaderi/conduit-manager-mac
+        https://github.com/polamgh/conduit-manager-mac
     EOS
   end
 

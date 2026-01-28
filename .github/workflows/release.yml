@@ -22,19 +22,19 @@ jobs:
       - name: Create ZIP archive
         run: |
           cd ConduitMenuBar
-          zip -r ../Conduit-MenuBar-macOS.zip Conduit.app
+          zip -r ../Conduit-Mac-MenuBar-macOS.zip Conduit-Mac.app
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Conduit-MenuBar-macOS
-          path: Conduit-MenuBar-macOS.zip
+          name: Conduit-Mac-MenuBar-macOS
+          path: Conduit-Mac-MenuBar-macOS.zip
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: Conduit-MenuBar-macOS.zip
+          files: Conduit-Mac-MenuBar-macOS.zip
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
